@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>
+        How-To: reddit API
+    </title>
+  </head>
+  <body>
+
+<h1>
+HOW TO: reddit API
+</h1>
+<p>
+A Quick Guide to Getting Access to the 7th Most Popular Site in the States
+</p>
+
+<p>
+<a href ="https://www.reddit.com/dev/api/">Officlal Reddit API Documentation here.</a>
+</p>
+
+<h2>
+What is Reddit?    
+</h2>
+<p> 
+Like popular websites such as Facebook and Instagram, Reddit.com is a social network. Unlike other social media sites, reddit is foremost a news and content aggregator and a place for communities to form and have informal, asynchronous discussions. Though they are loosely affiliated because they are all under the reddit.com domain, each community is an entity unto itself. There are communities for news (e.g. <a href="http://www.reddit.com/r/WorldNews">/r/WorldNews</a>), entertainment (e.g. <a href="http://www.reddit.com/r/Movies">/r/Movies</a>), education (e.g. <a href="http://www.reddit.com/r/History">/r/History</a>), humor (e.g. <a href="http://www.reddit.com/r/Jokes">Jokes</a>) and even communities completely devoted to computer science (e.g. <a href="http://www.reddit.com/r/CompSci">/r/CompSci</a>)!  
+
+Of course, chances are good if you're readng this, you already visit or are at least somewhat familiar with what reddit is. According to <a href="http://www.alexa.com/siteinfo/reddit.com">Alexa</a>, reddit is the 21st most visited website in the world and the 7th most visited website in the United States.
+</p>
+
+<h2>
+What is a Web API?    
+</h2>
+<p> 
+API stands for application programming interface. That sounds unnecessarily intimidating and it's a mouthful, and computer science people love acronyms, so everyone calls them API instead. Like the libraries that compiled languages have access to, web APIs provide a programmer access to tools instead of making her or him have to write them from scratch. Why web APIs? Think about it: unnecessarily duplicating code is bad when you're sitting in front of an IDE to write a basic script for yourself, so it only makes sense to avoid unnecessarily duplicating code that already works on one of the world's most visited website. The main difference is that libraries can be downloaded and used at one's leisure. Conversely, web APIs are hosted by the website themselves and subject to certain access requirements. Most popularly, access is granted via an API key, which is a usually a long, ugly string of what's seemingly nonsense.   
+</p>
+
+<h2>
+How do I get access to the reddit API?    
+</h2>
+<p> 
+Unlike the OpenWeatherMap API and others, access to the reddit API depends on some conditions, namely that developers register the name of their app. Additionally, developers must agree not seek to profit from it or imply the app was created by reddit.
+</p> 
+
+<p>
+On the technical side, instead of all API clients are required to authenticate using OAUTH2. This might sound like a meaningless detail, but it's actually pretty important. This is far, far different from simply plugging in an API key like in the OpenWeatherMap exercise, and it is a breeding ground for the possibility of errors. Current documentation is mostly unhelpful. This is because it assumes you'll be using special tools like Curl, which operates from the command line to transfer files using HTTP, or that you're running frameworks like AngularJS or jQuery, or that you're working with Python (which may be because reddit itself is written mostly in Python).
+</p>
+<p>
+For instance, here is a simplified example of calling OpenWeatherMap's API.
+</p>
+
+<script src="https://gist.github.com/anonymous/fe890814e73a6862a73321248f1af39b.js"></script>
+
+<p>
+As you can see, it is a standard asynchronous call to the OpenWeatherMap API. 
+</p>
+
+<p>
+The variable "req" is an object that provides the programmer with a handle to send a request. The finalURL is composed of the base URL, a few specific query-related characters, and a user-input zip or city.
+</p>
+
+<p>
+After the finalURL is assembled by concatenation, it is parameterized alongside the method -- GET:
+
+<p>
+    req.open("GET", finalURL, true);
+</p>
+
+<p>
+and sent with the line:
+</p>
+
+<p>
+    req.send();
+</p>
+<p>
+Unfortunately, reddit's API isn't quite so simple. Take a look.
+</p>
+
+<script src="https://gist.github.com/anonymous/8195cf83a4e22930f8267c081c7a74d1.js"></script>
+
+<p>
+(Don't worry, I swapped out a few of the characters in my client ID and secret string, so reddit is safe.)
+</p> 
+
+<p>
+First, the user must submit a request for an access token. It's a somewhat frustrating process, because it doesn't allow submissions in JSON, like we have been taught and prefer.
+</p>
+
+<h2>
+What's JSON?
+</h2>
+<p>
+It's a cleaner, more comfortable, non-Microsoft (yay!) alternative to XML, which is what the X in AJAX stands for, even though no one really uses that much anymore. JSON is another scary-sounding acronym whose meaning is significantly less scary. JSON (pronounced like "Jason") stands for JavaScript Object Notation. Really, it's just an agreed-upon format for storing, retrieving, and otherwise sending data back and forth between browsers and servers. Please don't interrupt me. 
+</p>
+
+<h2>
+I'm sorry.
+</h2>
+<p>
+It's okay. I'm sorry for snapping at you. I've had a lot of caffeine and a rough couple weeks trying to get the reddit API to work. 
+</p>
+
+<h2>
+How do I get an access token?
+</h2>
+<p>
+Like this. 
+</p>
+
+<script src="https://gist.github.com/anonymous/97c21a63855ebfb9ad8b8e13d002ad35.js"></script>
+
+<p>
+This is the same code as above, with a lot of the "extra" stuff excised so we can look at the main differences between simple API URL construction and this monstrosity.
+</p>
+
+<p>
+Creating a request object in our script is par for the course, as is setting up a "base" URL upon which we can add whatever is necessary to get the data we're after. However, instead of a single API key, we're required to send the client ID we were assigned when we registered with reddit, as well as our super secret...er, "secret" string. But it's not a matter of simple concatenation and passing the new, final URL. Instead, before we do anything, we have to make a POST request with just the base URL, and set up TWO special headers instead of the one we're used to.
+</p>
+
+<p>
+The first header is our authorization header. We can't just send the clientID and the secret smushed together and dust our hands off. We have to pass it the argument consisting of the word Basic, a space, and the result of a call to btoa() with our clientID and secret joined together with a colon character in the middle. The btoa method creates a base-64 (as opposed to base-2, base-10, base-8, or base-16 -- we needed more numbering systems to keep track of!) encoded ASCII string. You might think this is a security measure, but it would actually be fairly ineffective security since anyone could play with it and figure out that it's in base-64 and convert it. So it's not really encryption -- instead, it's a way to avoid any weird, non-printing characters from gumming up the works when the request is being sent.
+</p>
+
+<p>
+In addition to the funky authorization step, we also have to switch from our beloved JSON to "application/x-www-form-urlencoded", because to do otherwise will get us an error message that says:<br /> "Request header field Content-Type is not allowed by Access-Control-Allow-Headers in preflight response."<br /> This is JavaScript letting us know that reddit is a-okay with JSON, just not for POSTing our request for an access token. 
+</p>
+
+<p>
+On the other hand, if you don't remember to use the send method to deliver "grant_type="client_credentials", you will get an error message that says:<br /> "Object {error: "unsupported_grant_type"}". <br />The reddit API is very particular about things like this (just like redditors are very particular about things like grammar). 
+</p>
+
+<h2>
+Now that I have an access token, how do I use it to make requests?
+</h2>
+<p>
+Like you make most requests in JavaScript, but we've still got those pesky headers to worry over.
+</p>
+
+<script src="https://gist.github.com/anonymous/a388d344137fea83dad1074f7ad4001c.js"></script>
+
+<p>
+With each request, we include the Authorization header, but now it's paired with the argument "bearer " plus the access token that was printed to the console. It's not so important that you protect your access token, because they are slated to expire after an hour (or, according to the console 3600ms). Also, we're back to the comfort of JSON.
+</p>
+
+<p>
+As an example, let's pretend you're interested in poker and you want to find some useful content to include on a website you've made for you and your card-playing buddies. But we want to make sure this is about the card game and not about fireplace tools, because that would be super embarrassing. Here is code using your access token to retrieve the /r/poker subreddit's "about" information.
+</p>
+
+<p>
+It's of utmost importance that you don't neglect to update the base url to "https://oauth.reddit.com" as seen below!
+</p>
+
+<script src="https://gist.github.com/anonymous/ce5b9d9cba76fb2c72d168f4c463ccec.js"></script>
+
+<p>
+We can then programmatically access properties of the object the reddit API sent to us. In this case, we're looking for evidence that we're in the company of other degenerate gamblers, so we look to the "public_description" property and log it to the console--
+</p>
+
+<script src="https://gist.github.com/anonymous/7c18b2be0a79a1a1ebcce3f89cd1e101.js"></script>
+
+<p>--like so. And we get "Shuffle up and deal!" in the console to confirm we're in the right place.
+
+<h2>
+What can I do now?
+</h2>
+<p>
+Just about anything! 
+</p>
+
+<p>
+The reddit API can be used to fetch stories and comments from reddit, and use them on a third-party website. For instance, following a few reputable subreddits (i.e. the small communities that help constitute the whole of the reddit community) that share a focus with a website could help that site’s developer provide meaningful content without having to needlessly duplicate it. 
+</p>
+
+<p>
+If a website is devoted to a particular video game, it makes more sense to share news and content pulled from a community that has already aggregated it and assigned it a value through community voting and policing. So, in your own page, using the information culled from these JavaScript calls, you could display top stories, and allow users to click links that lead to full content -- when they're finished browsing yours, of course.
+</p>
+
+  </body>
+</html>
